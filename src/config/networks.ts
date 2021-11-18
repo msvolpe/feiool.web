@@ -17,10 +17,9 @@ const Rinkeby = "/images/networks/rinkeby-network.jpg";
 const Ropsten = "/images/networks/ropsten-network.jpg";
 const xDai = "/images/networks/xdai-network.jpg";
 const Celo = "/images/networks/celo-network.jpg";
-const Palm =
-  "https://raw.githubusercontent.com/sushiswap/icons/master/network/palm.jpg";
+const Palm = "https://raw.githubusercontent.com/sushiswap/icons/master/network/palm.jpg";
 
-export const NETWORK_ICON = {
+export const NETWORK_ICON:  { [chainId in number]?: string } = {
   [ChainId.MAINNET]: Mainnet,
   [ChainId.ROPSTEN]: Ropsten,
   [ChainId.RINKEBY]: Rinkeby,
@@ -48,7 +47,7 @@ export const NETWORK_ICON = {
   [ChainId.PALM]: Palm,
 };
 
-export const NETWORK_LABEL: { [chainId in ChainId]?: string } = {
+export const NETWORK_LABEL: { [chainId in number]?: string } = {
   [ChainId.MAINNET]: "Ethereum",
   [ChainId.RINKEBY]: "Rinkeby",
   [ChainId.ROPSTEN]: "Ropsten",

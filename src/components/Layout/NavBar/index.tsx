@@ -1,85 +1,91 @@
-import React from "react";
-import Button from "@material-ui/core/Button";
-import makeStyles from "@material-ui/core/styles/makeStyles";
-import Web3Network from "../../Web3Network";
+import React, { useEffect, useState } from "react";
+import Button from "@mui/material/Button";
+import NetworkConnected from "../../NetworkConnected";
 import { ChainId } from "../../../enums";
-
-const useStyles = makeStyles((theme) => ({
-  navContent: {
-    display: "flex",
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  link: {
-    margin: theme.spacing(1, 1.5),
-  },
-  networkButton: {
-    padding: 0,
-    minWidth: 0,
-    marginRight: 10,
-  },
-}));
-
-interface Wallet {
-  account: any;
-  chainId: ChainId;
-  library: any;
-}
-
-const useActiveWeb3React = (): Wallet => {
-  return {
-    account: "",
-    chainId: ChainId.MAINNET,
-    library: "",
-  };
-};
-
+import IconButton from '@mui/material/IconButton';
+import Brightness4Icon from '@mui/icons-material/Brightness4';
+import Brightness7Icon from '@mui/icons-material/Brightness7';
+import Paper from '@mui/material/Paper';
+import { useDispatch } from "react-redux";
+import { actionCreators } from "../../../state";
+import { useSelector } from "react-redux";
+import { NetworkConnectionModal } from '../../NetworkConnectionModal';
+import { WalletHelper } from '../../../helpers';
+ 
 export const NavBar = (): JSX.Element => {
-  const classes = useStyles();
-  const { account, chainId, library } = useActiveWeb3React();
+  const { mode } = useSelector((state: any) => state.theme);
+  
+  const networkState = useSelector((state: any) => state.network);
+  
+  const [connected, setConnected] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [networkId, setNetworkId] = useState();
+  const [open, setOpen] = useState(false);
+  
+  useEffect(() => { 
+    setConnected(networkState.wallet !== null);
+    setIsConnecting(networkState.connecting);
+    setErrorMessage(networkState.error);
+    setNetworkId(networkState.networkId);
+  }, [networkState]);
+
+  const dispatch = useDispatch();
+  
+  const changeMode = () => dispatch(actionCreators.changeThemeMode());
+
+  const handleClickOpen = () => setOpen(true);
+
+  const handleClose = () => setOpen(false);
 
   return (
-    <div className={classes.navContent}>
-      <Button
-        className={classes.networkButton}
-        variant="outlined"
-        color="primary"
-        onClick={() => {
-          const params: any = {
-            type: "ERC20",
-            options: {
-              address: "0x6B3595068778DD592e39A122f4f5a5cF09C90fE2", //SUSHI_ADDRESS[chainId],
-              symbol: "SUSHI",
-              decimals: 18,
-              image:
-                "https://raw.githubusercontent.com/sushiswap/assets/master/blockchains/ethereum/assets/0x6B3595068778DD592e39A122f4f5a5cF09C90fE2/logo.png",
-            },
-          };
-          console.log(params);
-        }}
-      >
-        <img
-          src="https://app.sushi.com/_next/image?url=%2Fimages%2Ftokens%2Fsushi-square.jpg&w=96&q=75"
-          alt="SUSHI"
-          width="35px"
-          height="35px"
-        />
-        s
-      </Button>
+    <div style={{ display: "flex", flexDirection: "row", alignItems: "center" }}>
 
-      <Web3Network />
+      { connected && networkId && <NetworkConnected chainId={networkId}/> }
 
-      <div className="w-auto flex items-center rounded bg-dark-900 hover:bg-dark-800 p-0.5 whitespace-nowrap text-sm font-bold cursor-pointer select-none pointer-events-auto">
-        {account && chainId && (
-          <>
-            <div className="px-3 py-2 text-primary text-bold">
-              0.02561 OKT {NATIVE[chainId].symbol}
-            </div>
-          </>
-        )}
-        {account && <Web3Status />}
-        {!account && <Web3Connect />}
-      </div>
+      { connected &&
+        <Paper sx={{
+          bgcolor: 'divider',
+          display: "flex",
+          alignItems: "center",
+          padding: "3px 3px 3px 0px",
+          borderRadius: 1
+        }} elevation={0}>      
+          
+          <div style={{ paddingLeft: "10px", paddingRight: "10px" }}>
+            { networkState.amount } {/* { NATIVE[networkId].symbol } */}
+          </div>
+          <Button sx={{ 
+            height: "30px",
+            fontWeight: 400,
+            fontSize: "1rem",
+            lineHeight: 1.5,
+            letterSpacing: "0.00938em"
+            }} variant="text" onClick={handleClickOpen}>
+            <p>{ WalletHelper.shortAddress(networkState.wallet) }</p>
+            <img src="/images/wallets/metamask.png" style={{ height: "18px", marginLeft: "10px" }}/>
+          </Button>
+          
+        </Paper>
+      }      
+      { !connected &&
+        <Button sx={{ 
+          height: "36px",
+          fontWeight: 400,
+          fontSize: "1rem",
+          lineHeight: 1.5,
+          letterSpacing: "0.00938em"
+            }}
+          variant="contained" disableElevation onClick={handleClickOpen}>
+          <p>Connect a wallet</p>
+        </Button>
+      }
+      <NetworkConnectionModal open={open} handleClose={handleClose} wallet={networkState.wallet} isConnecting={isConnecting} errorMessage={errorMessage}></NetworkConnectionModal>        
+
+      <IconButton sx={{ ml: 1 }} color="default" onClick={() => { changeMode() }}>
+        { mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon /> }
+      </IconButton>
+
     </div>
   );
 };
